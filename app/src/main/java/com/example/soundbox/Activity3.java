@@ -153,6 +153,7 @@ public class Activity3 extends AppCompatActivity {
 
         mediaRecorder.start();
     }
+    //todo
 
     public void onClickMainActivity(View v) {
         Log.i(TAG, "on click main activity " + getLocalClassName());
