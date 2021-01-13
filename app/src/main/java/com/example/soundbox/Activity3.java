@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Chronometer;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -28,8 +29,11 @@ public class Activity3 extends AppCompatActivity {
     private int PERMISSION_CODE = 21;
     private MediaRecorder mediaRecorder;
     private String recordFile;
+    private TextView filenameText;
 
-    private Chronometer chrono;
+    private Chronometer recordTimer;
+
+    private ImageButton recordButton;
 
     private boolean isRecording = false;
 
@@ -40,7 +44,8 @@ public class Activity3 extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_3);
 
-        chrono = findViewById(R.id.record_chrono);
+        recordTimer = findViewById(R.id.record_chrono);
+        recordButton = findViewById(R.id.button_record);
 
         Log.i(TAG, "past value : " + getLocalClassName());
     }
@@ -112,7 +117,7 @@ public class Activity3 extends AppCompatActivity {
     }
 
     private void stopRecording() {
-        chrono.stop();
+        recordTimer.stop();
 
         mediaRecorder.stop();
         mediaRecorder.release();
@@ -120,10 +125,8 @@ public class Activity3 extends AppCompatActivity {
     }
 
     private void startRecording() {
-        Log.i(TAG, "rentré " + getLocalClassName());
-        chrono.setBase(SystemClock.elapsedRealtime());
-        chrono.start();
-        Log.i(TAG, "passé " + getLocalClassName());
+        recordTimer.setBase(SystemClock.elapsedRealtime());
+        recordTimer.start();
 
         String recordPath = Environment.getExternalStorageDirectory().toString();
         SimpleDateFormat formatDate = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss", Locale.FRANCE);
@@ -131,11 +134,16 @@ public class Activity3 extends AppCompatActivity {
 
         recordFile = "Recording_" + formatDate.format(date) + ".3gp";
 
+        filenameText.setText("Recording, File Name : " + recordFile);
+
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
         mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP);
         mediaRecorder.setOutputFile(recordPath + "/" + recordFile);
         mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
+
+
+        Log.i(TAG, "recording file Path : " + recordPath + "/" + recordFile + " " + getLocalClassName());
 
         try {
             mediaRecorder.prepare();
@@ -151,5 +159,6 @@ public class Activity3 extends AppCompatActivity {
         Intent intent = new Intent(this, MainActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
         startActivity(intent);
+        //pull
     }
 }
