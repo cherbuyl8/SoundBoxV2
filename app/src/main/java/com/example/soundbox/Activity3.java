@@ -137,7 +137,7 @@ public class Activity3 extends AppCompatActivity {
     private void stopRecording() {
         recordTimer.stop();
 
-        textViewInfo.setText("L'enregistrement est terminé, File Saved : " + recordFile + " Appuyer sur le micro pour enregister à nouveau");
+        textViewInfo.setText("L'enregistrement est terminé, fichier sauvegardé : " + recordFile + " Appuyer sur le micro pour enregister à nouveau");
 
         mediaRecorder.stop();
         mediaRecorder.release();
