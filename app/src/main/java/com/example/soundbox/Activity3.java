@@ -11,11 +11,13 @@ import android.media.MediaPlayer;
 import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.View;
 import android.widget.Chronometer;
 import android.widget.ImageButton;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import java.io.IOException;
@@ -29,11 +31,20 @@ public class Activity3 extends AppCompatActivity {
     private int PERMISSION_CODE = 21;
     private MediaRecorder mediaRecorder;
     private String recordFile;
-    private TextView filenameText;
+    private TextView textViewInfo;
+    private TextView textViewInfo2;
 
     private Chronometer recordTimer;
 
     private ImageButton recordButton;
+    private ImageButton playButton;
+    private ImageButton pauseButton;
+
+    private SeekBar playerSeekbar;
+    private Handler seekbarHandler;
+    private Runnable updateSeekbar;
+
+    private MediaPlayer player;
 
     private boolean isRecording = false;
 
@@ -46,6 +57,11 @@ public class Activity3 extends AppCompatActivity {
 
         recordTimer = findViewById(R.id.record_chrono);
         recordButton = findViewById(R.id.button_record);
+        playButton = findViewById(R.id.imageButton_Play);
+        pauseButton = findViewById(R.id.imageButton_Pause);
+        textViewInfo = findViewById(R.id.textView_info);
+        textViewInfo2 = findViewById(R.id.textView_info2);
+        playerSeekbar = findViewById(R.id.seekBar);
 
         Log.i(TAG, "past value : " + getLocalClassName());
     }
@@ -53,6 +69,8 @@ public class Activity3 extends AppCompatActivity {
     @Override
     protected void onStart() {
         super.onStart();
+        textViewInfo.setText("Appuyer sur le micro pour enregister");
+        textViewInfo2.setText("Aucun son à jouer");
         Log.i(TAG, "on start " + getLocalClassName());
     }
 
@@ -119,6 +137,8 @@ public class Activity3 extends AppCompatActivity {
     private void stopRecording() {
         recordTimer.stop();
 
+        textViewInfo.setText("L'enregistrement est terminé, File Saved : " + recordFile + " Appuyer sur le micro pour enregister à nouveau");
+
         mediaRecorder.stop();
         mediaRecorder.release();
         mediaRecorder = null;
@@ -128,13 +148,14 @@ public class Activity3 extends AppCompatActivity {
         recordTimer.setBase(SystemClock.elapsedRealtime());
         recordTimer.start();
 
-        String recordPath = Environment.getExternalStorageDirectory().toString();
+        textViewInfo.setText("Enregistrement en cours ...");
+
+        String recordPath = getExternalCacheDir().getAbsolutePath();
+
         SimpleDateFormat formatDate = new SimpleDateFormat("yyyy_MM_dd_hh_mm_ss", Locale.FRANCE);
         Date date = new Date();
 
         recordFile = "Recording_" + formatDate.format(date) + ".3gp";
-
-        filenameText.setText("Recording, File Name : " + recordFile);
 
         mediaRecorder = new MediaRecorder();
         mediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
@@ -153,7 +174,42 @@ public class Activity3 extends AppCompatActivity {
 
         mediaRecorder.start();
     }
-    //todo
+
+
+    public void onClickPlay(View v) {
+        player = new MediaPlayer();
+        try {
+            player.setDataSource(getExternalCacheDir().getAbsolutePath() + "/" + recordFile);
+            player.prepare();
+            player.start();
+            textViewInfo2.setText("Ecoute du l'enregistrement : " + recordFile);
+        } catch (IOException e) {
+            Log.i(TAG, "recording prepare failed " + getLocalClassName());
+        }
+        playerSeekbar.setMax(player.getDuration());seekbarHandler = new Handler();
+        updateRunnable();
+        seekbarHandler.postDelayed(updateSeekbar, 0);
+
+    }
+
+    private void updateRunnable() {
+        updateSeekbar = new Runnable() {
+            @Override
+            public void run() {
+                playerSeekbar.setProgress(player.getCurrentPosition());
+                seekbarHandler.postDelayed(this, 500);
+            }
+        };
+    }
+
+
+    public void onClickStop(View v) {
+        player.release();
+        player = null;
+        seekbarHandler.removeCallbacks(updateSeekbar);
+        textViewInfo2.setText("L'écoute à été stoppée");
+    }
+
 
     public void onClickMainActivity(View v) {
         Log.i(TAG, "on click main activity " + getLocalClassName());
